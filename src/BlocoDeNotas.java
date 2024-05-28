@@ -2,9 +2,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import javax.swing.undo.*;
+
 public class BlocoDeNotas extends JFrame implements ActionListener {
     JTextArea textArea;
     JFileChooser fileChooser;
+    UndoManager undoManager;
 
     public BlocoDeNotas() {
         // Configuração da Janela
@@ -20,6 +23,7 @@ public class BlocoDeNotas extends JFrame implements ActionListener {
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
 
+        // Menu Arquivo
         JMenu fileMenu = new JMenu("Arquivo");
         menuBar.add(fileMenu);
 
@@ -43,7 +47,54 @@ public class BlocoDeNotas extends JFrame implements ActionListener {
         exit.addActionListener(this);
         fileMenu.add(exit);
 
+        // Menu Editar
+        JMenu editMenu = new JMenu("Editar");
+        menuBar.add(editMenu);
+
+        JMenuItem cut = new JMenuItem("Cortar");
+        cut.addActionListener(e -> textArea.cut());
+        editMenu.add(cut);
+
+        JMenuItem copy = new JMenuItem("Copiar");
+        copy.addActionListener(e -> textArea.copy());
+        editMenu.add(copy);
+
+        JMenuItem paste = new JMenuItem("Colar");
+        paste.addActionListener(e -> textArea.paste());
+        editMenu.add(paste);
+
+        JMenuItem undo = new JMenuItem("Desfazer");
+        undo.addActionListener(e -> {
+            try {
+                undoManager.undo();
+            } catch (CannotUndoException ex) {
+                ex.printStackTrace();
+            }
+        });
+        editMenu.add(undo);
+
+        JMenuItem redo = new JMenuItem("Refazer");
+        redo.addActionListener(e -> {
+            try {
+                undoManager.redo();
+            } catch (CannotRedoException ex) {
+                ex.printStackTrace();
+            }
+        });
+        editMenu.add(redo);
+
+        JMenuItem find = new JMenuItem("Localizar");
+        find.addActionListener(e -> localizarTexto());
+        editMenu.add(find);
+
+        JMenuItem replace = new JMenuItem("Substituir");
+        replace.addActionListener(e -> substituirTexto());
+        editMenu.add(replace);
+
         fileChooser = new JFileChooser();
+
+        undoManager = new UndoManager();
+        textArea.getDocument().addUndoableEditListener(e -> undoManager.addEdit(e.getEdit()));
     }
 
     @Override
@@ -104,8 +155,40 @@ public class BlocoDeNotas extends JFrame implements ActionListener {
                 JOptionPane.showMessageDialog(this, "Erro ao salvar arquivo: " + ex.getMessage());
             }
         }
-        
     }
-    
-}
 
+    private void localizarTexto() {
+        String termo = JOptionPane.showInputDialog(this, "Digite o texto a ser localizado:");
+        if (termo != null && !termo.isEmpty()) {
+            String conteudo = textArea.getText();
+            int index = conteudo.indexOf(termo);
+            if (index >= 0) {
+                textArea.setCaretPosition(index);
+                textArea.select(index, index + termo.length());
+                textArea.grabFocus();
+            } else {
+                JOptionPane.showMessageDialog(this, "Texto não encontrado.");
+            }
+        }
+    }
+
+    private void substituirTexto() {
+        JPanel panel = new JPanel(new GridLayout(2, 2));
+        JTextField findField = new JTextField(10);
+        JTextField replaceField = new JTextField(10);
+
+        panel.add(new JLabel("Localizar:"));
+        panel.add(findField);
+        panel.add(new JLabel("Substituir por:"));
+        panel.add(replaceField);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Localizar e Substituir", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            String findText = findField.getText();
+            String replaceText = replaceField.getText();
+            if (!findText.isEmpty()) {
+                textArea.setText(textArea.getText().replace(findText, replaceText));
+            }
+        }
+    }
+}

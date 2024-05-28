@@ -5,5 +5,6 @@ public class App {
         SwingUtilities.invokeLater(() -> {
             new BlocoDeNotas().setVisible(true);
         });
+    
     }
 }

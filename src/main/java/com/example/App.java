@@ -1,3 +1,4 @@
+package com.example;
 import javax.swing.SwingUtilities;
 
 public class App {

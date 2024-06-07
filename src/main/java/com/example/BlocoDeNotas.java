@@ -1,23 +1,74 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import javax.swing.undo.*;
+package com.example;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.plaf.basic.BasicScrollBarUI;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
 
 public class BlocoDeNotas extends JFrame implements ActionListener {
-    JTextArea textArea;
-    JFileChooser fileChooser;
-    UndoManager undoManager;
+    private JTextArea textArea;
+    private JFileChooser fileChooser;
+    private UndoManager undoManager;
 
     public BlocoDeNotas() {
+        // Aplicar tema escuro do FlatLaf
+        try {
+            UIManager.setLookAndFeel(new FlatDarkLaf());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        FlatLaf.updateUI();
+
         // Configuração da Janela
         setTitle("Bloco de Notas");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Área de Texto
-        textArea = new JTextArea();
-        add(new JScrollPane(textArea), BorderLayout.CENTER);
+       // Área de Texto
+
+       textArea = new JTextArea();
+
+       textArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+       textArea.setBackground(new Color(43, 43, 43)); // Cor de fundo do texto
+       textArea.setForeground(Color.WHITE); // Cor do texto
+       textArea.setCaretColor(Color.WHITE); // Cor do cursor
+
+       JScrollPane scrollPane = new JScrollPane(textArea);
+       scrollPane.getVerticalScrollBar().setUI(new CustomScrollBarUI());
+       scrollPane.getHorizontalScrollBar().setUI(new CustomScrollBarUI());
+       add(scrollPane, BorderLayout.CENTER);
 
         // Menu
         JMenuBar menuBar = new JMenuBar();
@@ -189,6 +240,50 @@ public class BlocoDeNotas extends JFrame implements ActionListener {
             if (!findText.isEmpty()) {
                 textArea.setText(textArea.getText().replace(findText, replaceText));
             }
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new BlocoDeNotas().setVisible(true);
+        });
+    }
+
+    // Custom ScrollBar UI to match the dark theme and rounded edges
+    static class CustomScrollBarUI extends BasicScrollBarUI {
+        @Override
+        protected void configureScrollBarColors() {
+            this.thumbColor = new Color(100, 100, 100);
+        }
+
+        @Override
+        protected JButton createDecreaseButton(int orientation) {
+            return createZeroButton();
+        }
+
+        @Override
+        protected JButton createIncreaseButton(int orientation) {
+            return createZeroButton();
+        }
+
+        private JButton createZeroButton() {
+            JButton button = new JButton();
+            button.setPreferredSize(new Dimension(0, 0));
+            button.setMinimumSize(new Dimension(0, 0));
+            button.setMaximumSize(new Dimension(0, 0));
+            return button;
+        }
+
+        @Override
+        protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
+            g.setColor(new Color(60, 60, 60));
+            g.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
+        }
+
+        @Override
+        protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
+            g.setColor(thumbColor);
+            g.fillRoundRect(thumbBounds.x, thumbBounds.y, thumbBounds.width, thumbBounds.height, 8, 8);
         }
     }
 }

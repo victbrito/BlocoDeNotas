@@ -1,10 +1,8 @@
-package test.java.com.example;
+package com.example;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
-
-import main.java.com.example.BlocoDeNotas;
 
 public class BlocoDeNotasTest {
     
